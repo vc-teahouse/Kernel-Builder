@@ -211,7 +211,7 @@ jobs:
           if [ "${{ github.event.inputs.with_susfs }}" == "true" ]; then
             git am ../patch/patches/susfs157.patch
             KSU_BRANCH=susfs-1.5.7
-            echo -e "\nCONFIG_KSU_SUSFS=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+            echo -e "\nCONFIG_KSU_SUSFS=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           else
             if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
                 KSU_BRANCH=nongki
@@ -227,10 +227,10 @@ jobs:
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s $KSU_BRANCH
           fi
 
-          echo -e "\nCONFIG_KSU=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
-          echo -e "\nCONFIG_KSU_MANUAL_HOOK=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KSU=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KSU_MANUAL_HOOK=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
-          cat ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          cat ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
       - name: "add kpm patcher"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -240,7 +240,7 @@ jobs:
           git am ../patch/patches/autopatchkpm.patch
           chmod +x ./patch_kpm.sh
           ./patch_kpm.sh --download
-
+          cat ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
       - name: "👍 Make defconfig"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         env:
