@@ -211,6 +211,7 @@ jobs:
           if [ "${{ github.event.inputs.with_susfs }}" == "true" ]; then
             git am ../patch/patches/susfs157.patch
             KSU_BRANCH=susfs-1.5.7
+            echo -e "\nCONFIG_KSU_SUSFS=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
           else
             if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
                 KSU_BRANCH=nongki
@@ -235,6 +236,7 @@ jobs:
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ github.event.inputs.with_kpm == 'true' && github.event.inputs.KernelSU-Variable == 'SUKISU' }}
         run: |
+          echo -e "\nCONFIG_KPM=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
           git am ../patch/patches/autopatchkpm.patch
           chmod +x ./patch_kpm.sh
           ./patch_kpm.sh --download
