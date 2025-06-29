@@ -1,0 +1,111 @@
+From d43d91edeccb9489974190a3cbafe81511732a7f Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?YC=E9=85=B1luyancib?= <luyancib@qq.com>
+Date: Sun, 29 Jun 2025 15:03:28 +0800
+Subject: [PATCH] Kernel:Add autopatchkpm
+
+Co-Authored-By: Qumolama.d <52760991+lama3l9r@users.noreply.github.com>
+---
+ arch/arm64/Makefile |  1 +
+ patch_kpm.sh        | 78 +++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 79 insertions(+)
+ create mode 100644 patch_kpm.sh
+
+diff --git a/arch/arm64/Makefile b/arch/arm64/Makefile
+index 37ed5d9a71f3..8db0f6be941e 100644
+--- a/arch/arm64/Makefile
++++ b/arch/arm64/Makefile
+@@ -210,6 +210,7 @@ all:	$(KBUILD_DTBS) $(KBUILD_TARGET)
+ 
+ Image: vmlinux
+ 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
++	$(Q)bash $(srctree)/patch_kpm.sh $(boot)/$@
+ 
+ Image.%: Image
+ 	$(Q)$(MAKE) $(build)=$(boot) $(boot)/$@
+diff --git a/patch_kpm.sh b/patch_kpm.sh
+new file mode 100644
+index 000000000000..543dd2c1e98c
+--- /dev/null
++++ b/patch_kpm.sh
+@@ -0,0 +1,78 @@
++#!/usr/bin/bash
++
++function check-exec() {
++    if ! which $1 &> /dev/null; then
++        echo "no $1! abort!"
++        exit 1
++    else
++        echo "ok: $1 exist"
++    fi
++}
++
++export TEMPORARY_DISABLE_PATH_RESTRICTIONS=true
++
++SELF_DIR=$(dirname $0)
++
++if ! [ -f "patch_linux" ]; then
++    if ! [ -f "$SELF_DIR/patch_linux" ]; then
++        echo "no patch_linux! downloading..."
++    
++        check-exec jq
++        check-exec curl
++        
++        TAG=$(jq -r '.tag_name' <<< $(curl --silent https://api.github.com/repos/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/latest))
++        echo "latest tag is: $TAG"
++    
++        curl -Ls -o "$SELF_DIR/patch_linux" "https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/$TAG/patch_linux"
++    
++        if [ $? -eq 0 ]; then
++            echo "download ok"
++        else
++            echo "download fail ($?)! abort!"
++            exit 1
++        fi
++    
++        chmod +x "$SELF_DIR/patch_linux"
++        if [ $? -eq 0 ]; then
++            echo "set permission ok"
++        else
++            echo "failed to set permission! abort!"
++            exit 1
++        fi
++    fi
++
++    cp "$SELF_DIR/patch_linux" .
++fi
++
++if [ "$1" = "--download" ]; then
++    echo "done"
++    exit 0
++fi
++
++if ! [ -f "$1" ]; then
++    echo "no input! abort!"
++    exit 1
++fi
++
++FILENAME=$(basename "$1")
++if [ "$FILENAME" = "Image" ]; then
++    mv $1 ./Image
++else
++    echo "wrong file! expected 'Image' but got '$FILENAME'. abort!"
++    exit 1
++fi
++
++./patch_linux
++
++if ! [ -f "oImage" ]; then
++    echo "patch failed!"
++    exit 1
++fi
++
++mv ./oImage $1
++
++echo "KPM patch done"
++
++
++export TEMPORARY_DISABLE_PATH_RESTRICTIONS=false
++
+-- 
+2.39.5
+

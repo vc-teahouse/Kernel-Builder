@@ -6,6 +6,22 @@ env:
 
 on:
   workflow_dispatch:
+    inputs:
+        KernelSU-Variable:
+            required: true
+            type: choice
+            default: 'YCRKSU'
+            options:
+                - 'SUKISU'
+                - 'YCRKSU'
+        with_susfs:
+            required: true
+            type: boolean
+            default: true
+        with_kpm:
+            required: true
+            type: boolean
+            default: true
 
 jobs:
   Set-repos:
@@ -49,9 +65,17 @@ jobs:
       isConfiginvendor: ${{ matrix.repos.isConfiginvendor }}
       dtbPath: ${{ matrix.repos.dtbPath }}
     steps:
+      - name: Set Git config
+        run: |
+          git config --global user.name github-actions[bot]
+          git config --global user.email 41898282+github-actions[bot]@users.noreply.github.com
+
       - name: "✨ Create working dir"
         run: mkdir -p $kernelDir
 
+      - uses: actions/checkout@v4
+        with:
+          path: ./${{ env.kernelDir }}/patch
       - name: "⭐ Install prerequisites"
         run: |
           sudo apt-get update
@@ -173,7 +197,7 @@ jobs:
           fi
           echo "args=$args" >> $GITHUB_OUTPUT
 
-      - name: "😋 Update KernelSU"
+      - name: "😋 Setup KernelSU"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ env.withKernelSU == 'true' }}
         run: |
@@ -184,13 +208,36 @@ jobs:
             rm -rf "./drivers/kernelsu"
           fi
 
-          curl -LSs "https://raw.githubusercontent.com/luyanci/KernelSU/main/kernel/setup.sh" | bash -s fork-fix-Kconfig
+          if [ "${{ github.event.inputs.with_susfs }}" == "true" ]; then
+            git am ../patch/patches/susfs157.patch
+            KSU_BRANCH=susfs-1.5.7
+          else
+            if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
+                KSU_BRANCH=nongki
+            else
+                KSU_BRANCH=main
+            fi
+          fi
 
-          echo -e "\nCONFIG_KPROBES=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
-          echo -e "\nCONFIG_HAVE_KPROBES=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
-          echo -e "\nCONFIG_KPROBE_EVENTS=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+
+          if [ "${{ github.event.inputs.KernelSU-Variable}}" == "YCRKSU" ]; then
+            curl -LSs "https://raw.githubusercontent.com/luyanci/KernelSU/main/kernel/setup.sh" | bash -s $KSU_BRANCH
+          elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s $KSU_BRANCH
+          fi
+
+          echo -e "\nCONFIG_KSU=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KSU_MANUAL_HOOK=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
 
           cat ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+
+      - name: "add kpm patcher"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        if: ${{ github.event.inputs.with_kpm == 'true' && github.event.inputs.KernelSU-Variable == 'SUKISU' }}
+        run: |
+          git am ../patch/patches/autopatchkpm.patch
+          chmod +x ./patch_kpm.sh
+          ./patch_kpm.sh --download
 
       - name: "👍 Make defconfig"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
@@ -258,6 +305,7 @@ jobs:
           cp "${{ env.OUT_DIR }}/arch/${{ env.ARCH }}/${{ env.dtbPath }}" AnyKernel3/dtb
           cp "${{ env.OUT_DIR }}/arch/${{ env.ARCH }}/boot/dtbo.img" AnyKernel3/
           rm -rf AnyKernel3/.git* AnyKernel3/README.md
+          zip -q -r "Anykernel3(${{ env.kernelDevice }}-${{ env.kernelName }}-${{ env.kernelBranch }}).zip" AnyKernel3/*
 
       - name: "❤️ Upload Anykernel3"
         uses: actions/upload-artifact@v4
@@ -266,3 +314,13 @@ jobs:
           path: ./${{ env.kernelDir }}/AnyKernel3/*
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: 🧧 Create GitHub Release => (${{ github.run_number }})
+        env:
+          ANYKERNEL3_FILE: "./${{ env.kernelDir }}/Anykernel3(${{ env.kernelDevice }}-${{ env.kernelName }}-${{ env.kernelBranch }}).zip"
+        continue-on-error: true
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          files: "${{ env.ANYKERNEL3_FILE }}.zip"
+          generate_release_notes: false

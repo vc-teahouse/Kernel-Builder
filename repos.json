@@ -34,45 +34,5 @@
       "LD":"ld.lld",
       "DTC_EXT":"dtc"
     }
-  },
-  {
-    "kernelSource": {
-      "name": "redcliff",
-      "repo": "https://github.com/SlackerState/android_kernel_xiaomi_sm6150",
-      "branch": "redcliff",
-      "device": "phoenix"
-    },
-    "isConfiginvendor":false,
-    "withKernelSU": true,
-    "useCustomtool":false,
-    "dtbPath":"boot/dts/qcom/sdmmagpie.dtb",
-    "toolchains": [
-      {
-        "repo": "https://android.googlesource.com/platform/prebuilts/gas/linux-x86",
-        "branch": "master",
-        "name": "gas"
-      },
-      {
-        "repo": "https://gitlab.com/ThankYouMario/android_prebuilts_clang-standalone/",
-        "branch": "11",
-        "name": "clang"
-      }
-    ],
-    "params": {
-      "ARCH": "arm64",
-      "CROSS_COMPILE": "aarch64-linux-gnu-",
-      "CROSS_COMPILE_ARM32": "arm-linux-gnueabi-",
-      "CROSS_COMPILE_COMPAT": "arm-linux-gnueabi-",
-      "CLANG_TRIPLE": "aarch64-linux-gnu-",
-      "AR": "",
-      "CC": "clang",
-      "HOSTCXX":"",
-      "NM":"" ,
-      "OBJCOPY":"",
-      "OBJDUMP":"",
-      "STRIP":"",
-      "LD":"",
-      "DTC_EXT":""
-    }
   }
 ]
