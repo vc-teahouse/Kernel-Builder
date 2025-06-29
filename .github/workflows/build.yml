@@ -236,7 +236,9 @@ jobs:
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ github.event.inputs.with_kpm == 'true' && github.event.inputs.KernelSU-Variable == 'SUKISU' }}
         run: |
-          echo -e "\nCONFIG_KPM=y" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KPM=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KALLSYMS=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KALLSYMS_ALL=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           git am ../patch/patches/autopatchkpm.patch
           chmod +x ./patch_kpm.sh
           ./patch_kpm.sh --download
