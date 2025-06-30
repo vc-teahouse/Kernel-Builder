@@ -8,12 +8,16 @@ on:
   workflow_dispatch:
     inputs:
         KernelSU-Variable:
+            descript:
             required: true
             type: choice
             default: 'YCRKSU'
             options:
+                - 'OFFICAL'
                 - 'SUKISU'
                 - 'YCRKSU'
+                - 'RKSU'
+                - 'NEXT'
         with_susfs:
             required: true
             type: boolean
@@ -22,7 +26,10 @@ on:
             required: true
             type: boolean
             default: true
-
+        with_lxc:
+            required: true
+            type: boolean
+            default: true
 jobs:
   Set-repos:
     name: "🐂 Parse repos.json"
@@ -220,11 +227,20 @@ jobs:
             fi
           fi
 
-
-          if [ "${{ github.event.inputs.KernelSU-Variable}}" == "YCRKSU" ]; then
+          if [ "${{ github.event.inputs.KernelSU-Variable}}" == "OFFICAL" ]; then
+            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+          elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "RKSU" ]; then
+            curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s $KSU_BRANCH
+          elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "YCRKSU" ]; then
             curl -LSs "https://raw.githubusercontent.com/luyanci/KernelSU/main/kernel/setup.sh" | bash -s $KSU_BRANCH
           elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s $KSU_BRANCH
+          elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "NEXT" ]; then
+            if [ "${{ github.event.inputs.with_susfs }}" == "true" ]; then
+                curl -LSs "https://raw.githubusercontent.com/pershoot/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s e3e9ba1
+            else
+                curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+            fi
           fi
 
           echo -e "\nCONFIG_KSU=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
@@ -232,7 +248,18 @@ jobs:
 
           cat ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
-      - name: "add kpm patcher"
+      - name: "Add LXC docker"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        if: ${{ github.event.inputs.with_lxc == 'true' }}
+        run: |
+          git submodule add http://github.com/tomxi1997/lxc-docker-support-for-android utils
+          echo '\nsource "utils/Kconfig"' >> ./Kconfig
+          echo "\nCONFIG_DOCKER=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+          sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+          echo "\n# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+          patch -p1 < ./utils/fix_cgroup.patch
+
+      - name: "Add KPM patcher"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ github.event.inputs.with_kpm == 'true' && github.event.inputs.KernelSU-Variable == 'SUKISU' }}
         run: |
@@ -243,6 +270,7 @@ jobs:
           chmod +x ./patch_kpm.sh
           ./patch_kpm.sh --download
           cat ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+
       - name: "👍 Make defconfig"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         env:
@@ -309,7 +337,8 @@ jobs:
           cp "${{ env.OUT_DIR }}/arch/${{ env.ARCH }}/${{ env.dtbPath }}" AnyKernel3/dtb
           cp "${{ env.OUT_DIR }}/arch/${{ env.ARCH }}/boot/dtbo.img" AnyKernel3/
           rm -rf AnyKernel3/.git* AnyKernel3/README.md
-          zip -q -r "Anykernel3(${{ env.kernelDevice }}-${{ env.kernelName }}-${{ env.kernelBranch }}).zip" AnyKernel3/*
+          cd AnyKernel3/
+          zip -q -r "../Anykernel3(${{ env.kernelDevice }}-${{ env.kernelName }}-${{ env.kernelBranch }}).zip" *
 
       - name: "❤️ Upload Anykernel3"
         uses: actions/upload-artifact@v4
