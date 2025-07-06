@@ -235,9 +235,6 @@ jobs:
             curl -LSs "https://raw.githubusercontent.com/luyanci/KernelSU/main/kernel/setup.sh" | bash -s $KSU_BRANCH
           elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s $KSU_BRANCH
-            cd KernelSU
-            git am ../../patch/patches/sukisu-kernel-add-spoof-key-nongki.patch
-            cd ..
           elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "NEXT" ]; then
             if [ "${{ github.event.inputs.with_susfs }}" == "true" ]; then
                 curl -LSs "https://raw.githubusercontent.com/pershoot/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s e3e9ba1
