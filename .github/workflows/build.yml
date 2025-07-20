@@ -216,8 +216,12 @@ jobs:
           fi
 
           if [ "${{ github.event.inputs.with_susfs }}" == "true" ] && [ "${{ github.event.inputs.KernelSU-Variable}}" != "OFFICAL" ]; then
-            git am ../patch/patches/susfs157.patch
-            KSU_BRANCH=susfs-1.5.7
+            git am ../patch/patches/susfs159.patch
+            if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
+                KSU_BRANCH=susfs-main
+            elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "YCRKSU" ] || [ "${{ github.event.inputs.KernelSU-Variable}}" == "RKSU" ] ; then
+                KSU_BRANCH=staging/susfs-main
+            fi
             echo -e "\nCONFIG_KSU_SUSFS=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           else
             if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
@@ -237,7 +241,7 @@ jobs:
             curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s $KSU_BRANCH
           elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "NEXT" ]; then
             if [ "${{ github.event.inputs.with_susfs }}" == "true" ]; then
-                curl -LSs "https://raw.githubusercontent.com/pershoot/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s e3e9ba1
+                curl -LSs "https://raw.githubusercontent.com/pershoot/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
             else
                 curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s next
             fi
