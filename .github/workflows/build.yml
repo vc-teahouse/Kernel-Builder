@@ -216,7 +216,7 @@ jobs:
           fi
 
           if [ "${{ github.event.inputs.with_susfs }}" == "true" ] && [ "${{ github.event.inputs.KernelSU-Variable}}" != "OFFICAL" ]; then
-            git am ../patch/patches/susfs159.patch
+            git am ../patch/patches/susfs159-dev.patch
             if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
                 KSU_BRANCH=susfs-main
             elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "YCRKSU" ]; then
