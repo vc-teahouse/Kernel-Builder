@@ -251,7 +251,7 @@ jobs:
 
           echo -e "\nCONFIG_KSU=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           echo -e "\nCONFIG_KSU_MANUAL_HOOK=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
-          sed -i 's/CONFIG_LOCALVERSION="-KernelSU"/CONFIG_LOCALVERSION="-${{ github.event.inputs.KernelSU-Variable}}"/g' .config
+          sed -i 's/CONFIG_LOCALVERSION="-KernelSU"/CONFIG_LOCALVERSION="-${{ github.event.inputs.KernelSU-Variable}}"/g' ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
           cat ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
