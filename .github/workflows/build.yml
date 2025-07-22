@@ -215,6 +215,8 @@ jobs:
             rm -rf "./drivers/kernelsu"
           fi
 
+          git am ../patch/patches/additonal-hooks.patch
+
           if [ "${{ github.event.inputs.with_susfs }}" == "true" ] && [ "${{ github.event.inputs.KernelSU-Variable}}" != "OFFICAL" ]; then
             git am ../patch/patches/susfs159-dev.patch
             if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
@@ -249,11 +251,15 @@ jobs:
             fi
           fi
 
+          echo -e "\nCONFIG_KPROBES=n" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_HAVE_KPROBES=n" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
+          echo -e "\nCONFIG_KPROBE_EVENTS=n" >> ./arch/${{ env.ARCH }}/configs/${{ env.DEFCONFIG_NAME }}
           echo -e "\nCONFIG_KSU=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
-          echo -e "\nCONFIG_KSU_MANUAL_HOOK=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
-          
+
           if [ "${{ github.event.inputs.KernelSU-Variable}}" != "OFFICAL" ]; then
             sed -i 's/CONFIG_LOCALVERSION="-KernelSU"/CONFIG_LOCALVERSION="-${{ github.event.inputs.KernelSU-Variable}}"/g' ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
+          else
+            echo -e "\nCONFIG_KSU_MANUAL_HOOK=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           fi
           cat ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
