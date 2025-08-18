@@ -228,11 +228,7 @@ jobs:
             fi
             echo -e "\nCONFIG_KSU_SUSFS=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           else
-            if [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
-                KSU_BRANCH=nongki
-            else
-                KSU_BRANCH=main
-            fi
+            KSU_BRANCH=main
           fi
 
           if [ "${{ github.event.inputs.KernelSU-Variable}}" == "OFFICAL" ]; then
