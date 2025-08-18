@@ -238,7 +238,8 @@ jobs:
           elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "YCRKSU" ]; then
             curl -LSs "https://raw.githubusercontent.com/luyanci/KernelSU/main/kernel/setup.sh" | bash -s $KSU_BRANCH
           elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "SUKISU" ]; then
-            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s $KSU_BRANCH
+            # there have bugs on pr SukiSU-Ultra#338
+            curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/d2ab325e1863c6abae1935d5f617a92fb1574983/kernel/setup.sh" | bash -s $KSU_BRANCH
           elif [ "${{ github.event.inputs.KernelSU-Variable}}" == "NEXT" ]; then
             if [ "${{ github.event.inputs.with_susfs }}" == "true" ]; then
                 curl -LSs "https://raw.githubusercontent.com/pershoot/KernelSU-Next/next-susfs/kernel/setup.sh" | bash -s next-susfs
