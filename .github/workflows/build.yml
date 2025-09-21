@@ -26,6 +26,10 @@ on:
             required: true
             type: boolean
             default: true
+        with_bbg:
+            required: true
+            type: boolean
+            default: true
         with_lxc:
             required: true
             type: boolean
@@ -291,6 +295,13 @@ jobs:
           sed -i '/CONFIG_ANDROID_PARANOID_NETWORK/d' ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           echo -e "\n# CONFIG_ANDROID_PARANOID_NETWORK is not set" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
           patch -p1 < ./utils/fix_cgroup.patch
+
+      - name: "😋 Add BBG"
+        working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
+        if: ${{ github.event.inputs.with_bbg == 'true' }}
+        run: |
+          wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash -s main
+          echo -e "\nCONFIG_BBG=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
       - name: "👍 Make defconfig"
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
