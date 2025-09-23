@@ -300,7 +300,7 @@ jobs:
         working-directory: ./${{ env.kernelDir }}/${{ env.kernelName }}
         if: ${{ github.event.inputs.with_bbg == 'true' }}
         run: |
-          wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash -s fix-duplicate-patch
+          wget -O- https://github.com/vc-teahouse/Baseband-guard/raw/main/setup.sh | bash -s
           echo -e "\nCONFIG_BBG=y" >> ./arch/${{ env.ARCH }}/configs/vendor/${{ env.DEFCONFIG_NAME }}
 
       - name: "👍 Make defconfig"
